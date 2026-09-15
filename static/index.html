@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google Gemini - 대화형 AI 챗봇</title>
+  <meta name="description" content="Gemini 3.8 Flash 및 3.7 Flash 기반의 고성능 대화형 AI 웹 챗봇">
+  
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Google+Sans:wght@400;500;700&family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  
+  <!-- Highlight.js for Code Highlighting -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  
+  <!-- Marked.js for Markdown Rendering -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/marked/12.0.1/marked.min.js"></script>
+
+  <!-- Main Style -->
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body class="light-theme">
+  <div class="app-layout" id="appLayout">
+    
+    <!-- Sidebar -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <button class="icon-btn" id="sidebarCloseBtn" title="사이드바 닫기" aria-label="사이드바 닫기">
+          <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="3" y1="12" x2="21" y2="12"></line>
+            <line x1="3" y1="6" x2="21" y2="6"></line>
+            <line x1="3" y1="18" x2="21" y2="18"></line>
+          </svg>
+        </button>
+        <div class="sidebar-title">대화 목록</div>
+      </div>
+
+      <div class="sidebar-action">
+        <button class="new-chat-btn" id="newChatBtn">
+          <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+          </svg>
+          <span>새 대화</span>
+        </button>
+      </div>
+
+      <div class="sidebar-section-title">최근 대화</div>
+      <div class="chat-history-list" id="chatHistoryList">
+        <!-- 대화 세션 항목들이 동적으로 렌더링됩니다 -->
+      </div>
+
+      <div class="sidebar-footer">
+        <div class="model-info-badge" id="sidebarModelBadge">
+          <span class="pulse-dot"></span>
+          <span id="sidebarModelText">Gemini 3.8 Flash</span>
+        </div>
+        <button class="clear-history-btn" id="clearAllChatsBtn" title="모든 대화 삭제">
+          <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2">
+            <polyline points="3 6 5 6 21 6"></polyline>
+            <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+          </svg>
+          <span>대화 기록 비우기</span>
+        </button>
+      </div>
+    </aside>
+
+    <!-- Main Content Area -->
+    <div class="main-wrapper">
+      
+      <!-- Top Navigation Bar -->
+      <header class="top-nav">
+        <div class="top-nav-left">
+          <button class="icon-btn" id="sidebarToggleBtn" title="메뉴 열기" aria-label="메뉴 열기">
+            <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="3" y1="12" x2="21" y2="12"></line>
+              <line x1="3" y1="6" x2="21" y2="6"></line>
+              <line x1="3" y1="18" x2="21" y2="18"></line>
+            </svg>
+          </button>
+          
+          <div class="brand-logo" id="brandLogo">
+            <svg class="gemini-star-logo" viewBox="0 0 28 28" width="24" height="24">
+              <defs>
+                <linearGradient id="geminiGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+                  <stop offset="0%" stop-color="#4285f4"/>
+                  <stop offset="40%" stop-color="#9b72cb"/>
+                  <stop offset="70%" stop-color="#d96570"/>
+                  <stop offset="100%" stop-color="#1ba1e2"/>
+                </linearGradient>
+              </defs>
+              <path fill="url(#geminiGrad)" d="M14,0 C14,7.732 7.732,14 0,14 C7.732,14 14,20.268 14,28 C14,20.268 20.268,14 28,14 C20.268,14 14,7.732 14,0 Z"/>
+            </svg>
+            <span class="brand-name">Gemini</span>
+          </div>
+        </div>
+
+        <div class="top-nav-right">
+          <!-- API 상태 표시 -->
+          <div class="api-status-tag" id="apiStatusTag" title="환경변수 GEMINI_API_KEY 연결 상태">
+            <span class="status-indicator online"></span>
+            <span class="status-label">API 연결됨</span>
+          </div>
+
+          <!-- 테마 토글 (라이트/다크) -->
+          <button class="icon-btn" id="themeToggleBtn" title="화면 테마 변경" aria-label="화면 테마 변경">
+            <svg id="themeIconSun" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="5"></circle>
+              <line x1="12" y1="1" x2="12" y2="3"></line>
+              <line x1="12" y1="21" x2="12" y2="23"></line>
+              <line x1="4.22" y1="4.22" x2="5.64" y2="5.64"></line>
+              <line x1="18.36" y1="18.36" x2="19.78" y2="19.78"></line>
+              <line x1="1" y1="12" x2="3" y2="12"></line>
+              <line x1="21" y1="12" x2="23" y2="12"></line>
+              <line x1="4.22" y1="19.78" x2="5.64" y2="18.36"></line>
+              <line x1="18.36" y1="5.64" x2="19.78" y2="4.22"></line>
+            </svg>
+            <svg id="themeIconMoon" class="hidden" viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z"></path>
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Center Container (Hero or Chat View) -->
+      <main class="chat-container" id="chatContainer">
+        
+        <!-- Hero Section (대화 시작 전 노출되는 화면, 첨부 이미지 완벽 일치) -->
+        <section class="hero-section" id="heroSection">
+          <h1 class="hero-title">무엇을 도와드릴까요?</h1>
+        </section>
+
+        <!-- Messages Thread (대화 진행 시 표시) -->
+        <div class="messages-stream" id="messagesStream"></div>
+      </main>
+
+      <!-- Floating Input Bar Area -->
+      <footer class="input-area" id="inputArea">
+        <div class="input-pill-wrapper" id="inputPillWrapper">
+          
+          <!-- Plus Icon Button -->
+          <button class="pill-btn plus-btn" id="plusBtn" title="추가 옵션" aria-label="추가 옵션">
+            <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+              <line x1="12" y1="5" x2="12" y2="19"></line>
+              <line x1="5" y1="12" x2="19" y2="12"></line>
+            </svg>
+          </button>
+
+          <!-- Input Textarea -->
+          <div class="textarea-container">
+            <textarea 
+              id="promptInput" 
+              rows="1" 
+              placeholder="Gemini에게 물어보기" 
+              autocomplete="off" 
+              spellcheck="false"></textarea>
+          </div>
+
+          <!-- Right Action Controls -->
+          <div class="pill-actions-right">
+            
+            <!-- Model Selection Dropdown Trigger -->
+            <div class="model-dropdown-container" id="modelDropdownContainer">
+              <button class="model-select-btn" id="modelSelectBtn" type="button" aria-haspopup="true" aria-expanded="false">
+                <span class="model-label" id="currentModelLabel">Flash</span>
+                <svg class="chevron-icon" viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
+                  <polyline points="6 9 12 15 18 9"></polyline>
+                </svg>
+              </button>
+
+              <!-- Model Selector Menu Modal -->
+              <div class="model-menu" id="modelMenu" role="menu">
+                <div class="model-menu-header">AI 모델 선택</div>
+                
+                <div class="model-menu-item active" data-model="gemini-3.8-flash" role="menuitem">
+                  <div class="model-item-info">
+                    <div class="model-item-title-row">
+                      <span class="model-item-name">Gemini 3.8 Flash</span>
+                      <span class="model-item-badge default-tag">기본값</span>
+                    </div>
+                    <div class="model-item-desc">최신 고속 지능형 플래시 모델. 빠르고 정확한 추론</div>
+                  </div>
+                  <div class="model-check-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                </div>
+
+                <div class="model-menu-item" data-model="gemini-3.7-flash" role="menuitem">
+                  <div class="model-item-info">
+                    <div class="model-item-title-row">
+                      <span class="model-item-name">Gemini 3.7 Flash</span>
+                    </div>
+                    <div class="model-item-desc">고효율 플래시 모델. 일상적인 질의와 다양한 작업에 최적화</div>
+                  </div>
+                  <div class="model-check-icon">
+                    <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                      <polyline points="20 6 9 17 4 12"></polyline>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <!-- Real-time Web Search Toggle Button (Google Search Grounding) -->
+            <button class="pill-btn search-toggle-btn active" id="searchToggleBtn" title="실시간 웹 검색 (Google Search) 켜짐" aria-label="실시간 웹 검색 토글">
+              <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <circle cx="12" cy="12" r="10"></circle>
+                <line x1="2" y1="12" x2="22" y2="12"></line>
+                <path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"></path>
+              </svg>
+              <span class="search-active-dot"></span>
+            </button>
+
+            <!-- Microphone Button (Voice Speech Recognition) -->
+            <button class="pill-btn mic-btn" id="micBtn" title="음성으로 입력하기" aria-label="음성으로 입력하기">
+              <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"></path>
+                <path d="M19 10v2a7 7 0 0 1-14 0v-2"></path>
+                <line x1="12" y1="19" x2="12" y2="23"></line>
+                <line x1="8" y1="23" x2="16" y2="23"></line>
+              </svg>
+            </button>
+
+            <!-- Send Button -->
+            <button class="pill-btn send-btn" id="sendBtn" title="메시지 전송" aria-label="메시지 전송" disabled>
+              <svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+                <line x1="12" y1="19" x2="12" y2="5"></line>
+                <polyline points="5 12 12 5 19 12"></polyline>
+              </svg>
+            </button>
+            
+          </div>
+        </div>
+
+        <div class="input-disclaimer">
+          Gemini는 실수를 할 수 있습니다. 실시간 Google 검색 그라운딩이 적용되어 최신 정보를 제공합니다.
+        </div>
+      </footer>
+
+    </div>
+  </div>
+
+  <!-- Plus Menu Dropdown (Quick Prompts) -->
+  <div class="quick-prompts-modal" id="quickPromptsModal">
+    <div class="quick-prompts-title">추천 프롬프트</div>
+    <button class="prompt-chip" data-prompt="오늘의 주요 실시간 IT 뉴스 및 이슈를 요약해줘.">🌐 실시간 최신 IT 뉴스 브리핑</button>
+    <button class="prompt-chip" data-prompt="현재 원/달러 환율과 주요 경제 동향을 실시간 검색해서 알려줘.">📈 실시간 환율 및 경제 동향</button>
+    <button class="prompt-chip" data-prompt="오늘 서울 날씨와 이번 주 날씨 예보를 알려줘.">🌤️ 오늘 날씨 및 주간 예보</button>
+    <button class="prompt-chip" data-prompt="GCP Compute Engine에 웹 애플리케이션을 배포하는 순서를 요약해줘.">☁️ GCP Compute Engine 배포 단계</button>
+    <button class="prompt-chip" data-prompt="Gemini 3.8 Flash와 Gemini 3.7 Flash 모델의 차이점과 특징을 설명해줘.">⚡ Gemini 3.8 Flash vs 3.7 Flash 비교</button>
+  </div>
+
+  <script src="/app.js"></script>
+</body>
+</html>
