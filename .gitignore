@@ -1,0 +1,23 @@
+# Logs & Process records
+*.log
+deployment_process.log
+
+# Environment variables & secrets
+.env
+.env.*
+!.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.venv/
+env/
+
+# Deployment archives
+*.tar.gz
+
+# OS specific
+.DS_Store
+Thumbs.db
