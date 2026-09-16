@@ -25,7 +25,7 @@ if hasattr(sys.stdout, 'reconfigure'):
 PROJECT = "iceu-songpa09"
 PROJECT_NUMBER = "108335720396"
 ACCOUNT = "songpa09@iceu.kr"
-REGION = "us-central1"
+REGION = "asia-northeast3"
 SERVICE_NAME = "gemini-chatbot-adc"
 GCLOUD_CMD = "gcloud.cmd" if os.name == "nt" else "gcloud"
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))

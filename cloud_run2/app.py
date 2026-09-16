@@ -15,30 +15,32 @@ logger = logging.getLogger("gemini-chatbot-adc")
 # Google GenAI SDK 내부 AFC 권고 경고 필터링
 logging.getLogger("google_genai.models").setLevel(logging.ERROR)
 
-# GCP 프로젝트 및 리전 설정 (환경변수 자동 감지 또는 기본값)
+# GCP 프로젝트 및 리전 설정 (환경변수 자동 감지 또는 기본값: 서울 리전 asia-northeast3)
 PROJECT_ID = (
     os.environ.get("GOOGLE_CLOUD_PROJECT")
     or os.environ.get("GCP_PROJECT")
     or "iceu-songpa09"
 )
-LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION") or "us-central1"
+DEFAULT_LOCATION = os.environ.get("GOOGLE_CLOUD_LOCATION") or "asia-northeast3"
 
 from google import genai
 from google.genai import types
 
-def get_client() -> genai.Client:
+def get_client(model: str = "gemini-2.5-flash") -> genai.Client:
     """
     GCP Agent Platform / Vertex AI 기반 ADC(Application Default Credentials) 클라이언트 초기화.
-    API 키 없이 인프라 자체의 서비스 계정 자격 증명을 자동으로 사용하여 인증합니다.
+    - 기본 모델인 gemini-2.5-flash는 서울(asia-northeast3) 리전에서 초저지연 직접 처리
+    - gemini-2.5-pro는 us-central1 리전으로 스마트 라우팅
     """
+    target_loc = "us-central1" if model == "gemini-2.5-pro" else DEFAULT_LOCATION
     try:
         return genai.Client(
             vertexai=True,
             project=PROJECT_ID,
-            location=LOCATION
+            location=target_loc
         )
     except Exception as e:
-        logger.error(f"ADC Client 초기화 실패: {e}")
+        logger.error(f"ADC Client 초기화 실패 ({target_loc}): {e}")
         raise HTTPException(
             status_code=500,
             detail=f"ADC(Application Default Credentials) 인증에 실패했습니다: {str(e)}"
@@ -112,7 +114,7 @@ async def health_check():
         "platform": "Google Cloud Run (Vertex AI / Agent Platform)",
         "authMode": "ADC (Application Default Credentials - Keyless)",
         "projectId": PROJECT_ID,
-        "location": LOCATION,
+        "location": DEFAULT_LOCATION,
         "defaultModel": "gemini-2.5-flash",
         "realtimeSearchSupported": True,
         "models": [m["id"] for m in AVAILABLE_MODELS]
@@ -130,7 +132,7 @@ async def chat_stream(request: ChatRequest):
     if selected_model not in valid_ids:
         selected_model = "gemini-2.5-flash"
 
-    client = get_client()
+    client = get_client(selected_model)
 
     # Gemini 메시지 포맷 변환
     formatted_contents = []
