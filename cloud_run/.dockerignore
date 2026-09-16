@@ -1,0 +1,16 @@
+__pycache__
+*.py[cod]
+*$py.class
+.git
+.gitignore
+.env
+*.log
+venv/
+.venv/
+myenv/
+Dockerfile
+.dockerignore
+deploy_to_cloud_run.py
+run.bat
+run.ps1
+README.md
