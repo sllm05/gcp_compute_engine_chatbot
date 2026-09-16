@@ -288,6 +288,9 @@ def main():
             tar.add(os.path.join(BASE_DIR, "app.py"), arcname="app.py")
             tar.add(os.path.join(BASE_DIR, "requirements.txt"), arcname="requirements.txt")
             tar.add(os.path.join(BASE_DIR, "static"), arcname="static")
+            scripts_dir = os.path.join(BASE_DIR, "scripts")
+            if os.path.exists(scripts_dir):
+                tar.add(scripts_dir, arcname="scripts")
             env_tmp = os.path.join(BASE_DIR, ".env.deploy")
             with open(env_tmp, "w", encoding="utf-8") as ef:
                 ef.write(f"GEMINI_API_KEY={gemini_key}\n")
